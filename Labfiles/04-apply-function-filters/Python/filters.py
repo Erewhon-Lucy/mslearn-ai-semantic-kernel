@@ -8,6 +8,7 @@ from semantic_kernel.connectors.ai.function_choice_behavior import FunctionChoic
 from flight_booking_plugin import FlightBookingPlugin
 from typing import Awaitable, Callable
 from semantic_kernel.filters import FunctionInvocationContext
+from semantic_kernel.functions import FunctionResult
 
 def has_user_permission(plugin_name: str, function_name: str) -> bool:
     if plugin_name == "flight_booking_plugin" and function_name == "book_flight":
@@ -20,10 +21,14 @@ def has_user_permission(plugin_name: str, function_name: str) -> bool:
     return True
 
 # Create the function filer class
-async def permission_filter():
+async def permission_filter(context: FunctionInvocationContext, next: Callable[[FunctionInvocationContext], Awaitable[None]]) -> None:
 
     # Implement the function invocation method
-    
+    if not has_user_permission(context.function.plugin_name, context.function.name):
+        context.result = "The operation was not approved by the user"
+        return
+
+    await next(context)
 
 async def main():
 
@@ -43,7 +48,7 @@ async def main():
     kernel.add_plugin(FlightBookingPlugin(), "flight_booking_plugin")
 
     # Add the permission filter to the kernel
-
+    kernel.add_filter('function_invocation', permission_filter)
 
     settings = AzureChatPromptExecutionSettings(
         function_choice_behavior=FunctionChoiceBehavior.Auto(),

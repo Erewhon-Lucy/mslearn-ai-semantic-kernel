@@ -29,7 +29,7 @@ async def main():
     # Test the chat completion service
     response = await kernel.invoke_prompt(
         "Give me a list of 10 breakfast foods with eggs and cheese", 
-        KernelArguments())
+        KernelArguments()) # type: ignore
     print("Assistant > " + str(response))
 
 
